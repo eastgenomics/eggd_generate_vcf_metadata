@@ -1,0 +1,55 @@
+{
+    "name": "eggd_generate_vcf_metadata",
+    "title": "eggd_generate_vcf_metadata",
+    "summary": "Generate metadata for given VCF file to upload to openCGA",
+    "dxapi": "1.0.0",
+    "version": "1.0.0",
+    "githubRelease": "v1.0.0",
+    "inputSpec": [
+      {
+        "name": "vcf",
+        "label": "vcf",
+        "class": "file",
+        "optional": false,
+        "patterns": [
+          "*"
+        ],
+        "help": ""
+      }
+    ],
+    "outputSpec": [
+      {
+        "name": "json",
+        "label": "json",
+        "class": "file",
+        "patterns": [
+          "*.json"
+        ],
+        "help": ""
+      }
+    ],
+    "runSpec": {
+      "timeoutPolicy": {
+        "*": {
+          "hours": 1
+        }
+      },
+      "interpreter": "bash",
+      "file": "src/eggd_generate_vcf_metadata.sh",
+      "distribution": "Ubuntu",
+      "release": "20.04",
+      "version": "0"
+    },
+    "access": {
+      "project": "CONTRIBUTE"
+    },
+    "regionalOptions": {
+      "aws:eu-central-1": {
+        "systemRequirements": {
+          "*": {
+            "instanceType": "mem1_ssd1_v2_x2"
+          }
+        }
+      }
+    }
+  }
