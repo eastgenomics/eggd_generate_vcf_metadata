@@ -99,15 +99,15 @@ _myeloid_configs () {
     # first 7 fields of sample name separate + rest (e.g. _S11_L001...) 
     IFS='-' read -a arr <<< "$vcf_name"
 
-    _generate_clinical "HaemOnc" "MYE-H${arr[0]}_1" "haemonc_genes_all" \
-                        "HIGH" "${arr[0]}" "$sample_name" \
+    _generate_clinical "HaemOnc" "MYE-H${arr[1]}_1" "haemonc_genes_all" \
+                        "HIGH" "${arr[1]}" "$sample_name" \
                         "READY_FOR_INTERPRETATION" "CANCER"
 
-    _generate_individuals "HaemOnc" "${arr[0]}" "${arr[0]}" "${arr[5]}"
+    _generate_individuals "HaemOnc" "${arr[1]}" "${arr[1]}" "${arr[5]}"
 
     _generate_manifest "cancer_grch38" "myeloid"
 
-    _generate_samples "$sample_name" "${arr[0]}" "true"
+    _generate_samples "$sample_name" "${arr[1]}" "true"
 }
 
 main() {
