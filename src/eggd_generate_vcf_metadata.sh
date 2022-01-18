@@ -136,7 +136,7 @@ main() {
 
     # zip yaml files for upload
     zip --junk-paths "${sample_name}.opencga_configs.zip" \
-        $HOME/clincal.yaml $HOME/individuals.yaml $HOME/manifest.yaml $HOME/samples.yaml
+        clincal.yaml individuals.yaml manifest.yaml samples.yaml
 
     # upload zip of configs
     json=$(dx upload "$config_zip" --brief)
