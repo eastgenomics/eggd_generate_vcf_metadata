@@ -25,7 +25,7 @@ _generate_clinical () {
       proband:
         id: %s
         samples:
-        - id %s
+        - id: %s
       status:
         id: %s
       type: %s
@@ -93,12 +93,10 @@ _generate_samples () {
 
 _myeloid_configs () {
     # generates config files for myeloid samples
-    
+    sample_name=$1
+
     # split vcf filename parts to an array
     IFS='-' read -a arr <<< "$vcf_name"
-
-    # get just the sample name (i.e. first 10 fields)
-    sample_name=$(cut -d'_' -f-3 <<< "$vcf_name")
 
     _generate_clinical "HaemOnc" "MYE-H${arr[0]}_1" "haemonc_genes_all" \
                         "HIGH" "${arr[0]}" "$sample_name" \
@@ -113,21 +111,22 @@ _myeloid_configs () {
 
 main() {
 
+    vcf_name="2109860-21313Z0095-PB-MPD-MYE-F-EGG2_S11_L001_markdup_recalibrated_tnhaplotyper2_allgenesvep.vcf"
+
     echo "Value of vcf: '$vcf'"
     echo "vcf name: $vcf_name"
     echo "vcf path: $vcf_path"
 
-    # vcf_name="2108574-21274Z0040-PB-MPD-MYE-F-EGG2_S9_L001_markdup_recalibrated_tnhaplotyper2_allgenesvep.vcf"
-
     # _prefix won't work, get prefix ourselves
     IFS='.' read -r vcf_prefix _ <<< "$vcf_name"
-    json="${vcf_prefix}.metadata.json"
-
+    
+    # get just the sample name (i.e. sample name + _S{0-9}_L001)
+    sample_name=$(cut -d'_' -f-3 <<< "$vcf_name")
 
     # generate required yaml files
     if [[ "$vcf_name" =~ "EGG2" ]]; then
         # check VCF is haemonc
-       _myeloid_configs
+       _myeloid_configs "$sample_name"
     else
         # exit since this only handles myeloid samples for now
         printf "%s does not appear to be a haemonc VCF file. Exiting now" "$vcf_name"
@@ -135,8 +134,8 @@ main() {
     fi
 
     # zip yaml files for upload
-    zip "${vcf_prefix}.opencga_configs.zip" \
-        clincal.yaml individuals.yaml manifest.yaml samples.yaml
+    zip --junk-paths "${sample_name}.opencga_configs.zip" \
+        $HOME/clincal.yaml $HOME/individuals.yaml $HOME/manifest.yaml $HOME/samples.yaml
 
     # upload zip of configs
     json=$(dx upload "$config_zip" --brief)

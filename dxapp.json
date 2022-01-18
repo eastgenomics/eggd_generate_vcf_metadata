@@ -1,7 +1,7 @@
 {
     "name": "eggd_generate_vcf_metadata",
     "title": "eggd_generate_vcf_metadata",
-    "summary": "Generate metadata for given VCF file to upload to openCGA",
+    "summary": "Generate metadata yaml configs for given VCF file to upload to openCGA",
     "dxapi": "1.0.0",
     "version": "1.0.0",
     "githubRelease": "v1.0.0",
