@@ -30,8 +30,8 @@ _generate_clinical () {
         id: %s
       type: %s
     ''' "${disorder}" "${opencga_sample_id}" "${panel}" "${priority}" \
-        "${individual_id}" "${sample_name}" "${status}" "${type}"\
-        | sed "s/^[ ]\{4\}//g; /^$/d" > $HOME/clincal.yaml
+        "'${individual_id}'" "${sample_name}" "${status}" "${type}"\
+        | sed "s/^[ ]\{4\}//g; /^$/d" > clincal.yaml
 }
 
 _generate_individuals () {
@@ -57,8 +57,8 @@ _generate_individuals () {
     name: %s
     sex:
       id: %s
-    ''' "$disorder" "$id" "$name" "$sex" \
-    | sed "s/^[ ]\{4\}//g; /^$/d" > $HOME/individuals.yaml
+    ''' "$disorder" "'$id'" "'$name'" "$sex" \
+    | sed "s/^[ ]\{4\}//g; /^$/d" > individuals.yaml
 
 }
 
@@ -73,7 +73,7 @@ _generate_manifest () {
     study:
       id: %s
     ''' "$project" "$study" \
-    | sed "s/^[ ]\{4\}//g; /^$/d" > $HOME/manifest.yaml
+    | sed "s/^[ ]\{4\}//g; /^$/d" > manifest.yaml
 
 }
 
@@ -87,8 +87,8 @@ _generate_samples () {
     - id: %s
       individualId: %s
       somatic: %s
-    ''' "$sample_name" "$individual_id" "$somatic" \
-    | sed "s/^[ ]\{4\}//g; /^$/d" > $HOME/samples.yaml
+    ''' "$sample_name" "'$individual_id'" "$somatic" \
+    | sed "s/^[ ]\{4\}//g; /^$/d" > samples.yaml
 }
 
 _myeloid_configs () {
@@ -96,6 +96,7 @@ _myeloid_configs () {
     sample_name=$1
 
     # split vcf filename parts to an array
+    # first 7 fields of sample name separate + rest (e.g. _S11_L001...) 
     IFS='-' read -a arr <<< "$vcf_name"
 
     _generate_clinical "HaemOnc" "MYE-H${arr[0]}_1" "haemonc_genes_all" \
@@ -111,7 +112,7 @@ _myeloid_configs () {
 
 main() {
 
-    vcf_name="2109860-21313Z0095-PB-MPD-MYE-F-EGG2_S11_L001_markdup_recalibrated_tnhaplotyper2_allgenesvep.vcf"
+    # vcf_name="2109860-21313Z0095-PB-MPD-MYE-F-EGG2_S11_L001_markdup_recalibrated_tnhaplotyper2_allgenesvep.vcf"
 
     echo "Value of vcf: '$vcf'"
     echo "vcf name: $vcf_name"
@@ -120,7 +121,7 @@ main() {
     # _prefix won't work, get prefix ourselves
     IFS='.' read -r vcf_prefix _ <<< "$vcf_name"
     
-    # get just the sample name (i.e. sample name + _S{0-9}_L001)
+    # get just the sample name (i.e. sample name + _S[0-9]{1,2}_L001)
     sample_name=$(cut -d'_' -f-3 <<< "$vcf_name")
 
     # generate required yaml files
