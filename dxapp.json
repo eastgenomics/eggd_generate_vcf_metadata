@@ -19,13 +19,13 @@
     ],
     "outputSpec": [
       {
-        "name": "json",
-        "label": "json",
+        "name": "config_zip",
+        "label": "config zip",
         "class": "file",
         "patterns": [
           "*.json"
         ],
-        "help": ""
+        "help": "zip of required config files for opencga upload"
       }
     ],
     "runSpec": {
