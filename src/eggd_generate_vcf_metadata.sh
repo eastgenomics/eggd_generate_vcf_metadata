@@ -31,7 +31,7 @@ _generate_clinical () {
       type: %s
     ''' "${disorder}" "${opencga_sample_id}" "${panel}" "${priority}" \
         "'${individual_id}'" "${sample_name}" "${status}" "${type}"\
-        | sed "s/^[ ]\{4\}//g; /^$/d" > clincal.yaml
+        | sed "s/^[ ]\{4\}//g; /^$/d" > clinical.yaml
 }
 
 _generate_individuals () {
@@ -98,7 +98,7 @@ _myeloid_configs () {
     # first 7 fields of sample name separate + rest (e.g. _S11_L001...)
     IFS='-' read -a arr <<< "$vcf_name"
 
-    _generate_clinical "HaemOnc" "MYE-H${arr[1]}" "haemonc_genes_all" \
+    _generate_clinical "HaemOnc" "H${arr[1]}" "haemonc_genes_all" \
                         "HIGH" "${arr[0]}" "${arr[1]}" \
                         "READY_FOR_INTERPRETATION" "CANCER"
 
@@ -111,7 +111,7 @@ _myeloid_configs () {
 
 main() {
 
-    vcf_name="2109860-21313Z0095-PB-MPD-MYE-F-EGG2_S11_L001_markdup_recalibrated_tnhaplotyper2_allgenesvep.vcf"
+    vcf_name="2108574-21274Z0040-PB-MPD-MYE-F-EGG2_S9_L001_vs_TA2_S59_L008_tumor.flagged.opencga.vcf"
 
     echo "Value of vcf: '$vcf'"
     echo "vcf name: $vcf_name"
@@ -134,8 +134,8 @@ main() {
     fi
 
     # zip yaml files for upload
-    # zip --junk-paths "${sample_name}.opencga_configs.zip" \
-    #     clincal.yaml individuals.yaml manifest.yaml samples.yaml
+    zip --junk-paths "${sample_name}.opencga_configs.zip" \
+        clincal.yaml individuals.yaml manifest.yaml samples.yaml
 
     # upload zip of configs
     json=$(dx upload "$config_zip" --brief)
