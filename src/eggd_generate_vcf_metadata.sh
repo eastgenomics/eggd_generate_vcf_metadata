@@ -93,26 +93,25 @@ _generate_samples () {
 
 _myeloid_configs () {
     # generates config files for myeloid samples
-    sample_name=$1
 
     # split vcf filename parts to an array
-    # first 7 fields of sample name separate + rest (e.g. _S11_L001...) 
+    # first 7 fields of sample name separate + rest (e.g. _S11_L001...)
     IFS='-' read -a arr <<< "$vcf_name"
 
-    _generate_clinical "HaemOnc" "MYE-H${arr[1]}_1" "haemonc_genes_all" \
-                        "HIGH" "${arr[1]}" "$sample_name" \
+    _generate_clinical "HaemOnc" "MYE-H${arr[1]}" "haemonc_genes_all" \
+                        "HIGH" "${arr[0]}" "${arr[1]}" \
                         "READY_FOR_INTERPRETATION" "CANCER"
 
-    _generate_individuals "HaemOnc" "${arr[1]}" "${arr[1]}" "${arr[5]}"
+    _generate_individuals "HaemOnc" "${arr[0]}" "${arr[0]}" "${arr[5]}"
 
     _generate_manifest "cancer_grch38" "myeloid"
 
-    _generate_samples "$sample_name" "${arr[1]}" "true"
+    _generate_samples "${arr[1]}" "${arr[0]}" "true"
 }
 
 main() {
 
-    # vcf_name="2109860-21313Z0095-PB-MPD-MYE-F-EGG2_S11_L001_markdup_recalibrated_tnhaplotyper2_allgenesvep.vcf"
+    vcf_name="2109860-21313Z0095-PB-MPD-MYE-F-EGG2_S11_L001_markdup_recalibrated_tnhaplotyper2_allgenesvep.vcf"
 
     echo "Value of vcf: '$vcf'"
     echo "vcf name: $vcf_name"
@@ -120,7 +119,7 @@ main() {
 
     # _prefix won't work, get prefix ourselves
     IFS='.' read -r vcf_prefix _ <<< "$vcf_name"
-    
+
     # get just the sample name (i.e. sample name + _S[0-9]{1,2}_L001)
     sample_name=$(cut -d'_' -f-3 <<< "$vcf_name")
 
@@ -135,8 +134,8 @@ main() {
     fi
 
     # zip yaml files for upload
-    zip --junk-paths "${sample_name}.opencga_configs.zip" \
-        clincal.yaml individuals.yaml manifest.yaml samples.yaml
+    # zip --junk-paths "${sample_name}.opencga_configs.zip" \
+    #     clincal.yaml individuals.yaml manifest.yaml samples.yaml
 
     # upload zip of configs
     json=$(dx upload "$config_zip" --brief)
