@@ -105,17 +105,20 @@ _myeloid_configs () {
     _generate_individuals "HaemOnc" "${arr[0]}" "${arr[0]}" "${arr[5]}"
 
     _generate_manifest "cancer_grch38" "myeloid"
-
     _generate_samples "${arr[1]}" "${arr[0]}" "true"
+
 }
 
 main() {
 
-    vcf_name="2108574-21274Z0040-PB-MPD-MYE-F-EGG2_S9_L001_vs_TA2_S59_L008_tumor.flagged.opencga.vcf"
+    # input is array, select the first to get name from
+    # awk to get out the file ID as it is formatted as
+    # {"$dnanexus_link": "file-xxx"}
+    vcf=$(awk -F'"' '{print $4}' <<< "${vcf[0]}")
+    vcf_name=$(dx describe --json "${vcf}" | jq -r '.name')
 
-    echo "Value of vcf: '$vcf'"
+    echo "vcf ID: '$vcf'"
     echo "vcf name: $vcf_name"
-    echo "vcf path: $vcf_path"
 
     # _prefix won't work, get prefix ourselves
     IFS='.' read -r vcf_prefix _ <<< "$vcf_name"
@@ -133,13 +136,15 @@ main() {
         exit 1
     fi
 
+    # cat files to be in logs for easier checking if needed
+    for file in ./*.yaml; do cat "$file"; done
+
     # zip yaml files for upload
     zip --junk-paths "${sample_name}.opencga_configs.zip" \
-        clincal.yaml individuals.yaml manifest.yaml samples.yaml
+        clinical.yaml individuals.yaml manifest.yaml samples.yaml
 
     # upload zip of configs
-    json=$(dx upload "$config_zip" --brief)
-    dx-jobutil-add-output json "$config_zip" --class=file
+    zip=$(dx upload "${sample_name}.opencga_configs.zip" --brief)
+    dx-jobutil-add-output config_zip "$zip" --class=file
 }
 
-main

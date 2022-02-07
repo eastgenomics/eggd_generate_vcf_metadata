@@ -9,7 +9,7 @@
       {
         "name": "vcf",
         "label": "vcf",
-        "class": "file",
+        "class": "array:file",
         "optional": false,
         "patterns": [
           "*"
@@ -23,7 +23,7 @@
         "label": "config zip",
         "class": "file",
         "patterns": [
-          "*.json"
+          "*.zip"
         ],
         "help": "zip of required config files for opencga upload"
       }
@@ -41,8 +41,15 @@
       "version": "0"
     },
     "access": {
-      "project": "CONTRIBUTE"
+      "project": "CONTRIBUTE",
+      "allProjects": "VIEW"
     },
+    "authorizedUsers": [
+      "org-emee_1"
+    ],
+    "developers":[
+      "org-emee_1"
+    ],
     "regionalOptions": {
       "aws:eu-central-1": {
         "systemRequirements": {
