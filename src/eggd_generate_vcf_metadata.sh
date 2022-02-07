@@ -59,7 +59,6 @@ _generate_individuals () {
       id: %s
     ''' "$disorder" "'$id'" "'$name'" "$sex" \
     | sed "s/^[ ]\{4\}//g; /^$/d" > individuals.yaml
-
 }
 
 _generate_manifest () {
@@ -74,7 +73,6 @@ _generate_manifest () {
       id: %s
     ''' "$project" "$study" \
     | sed "s/^[ ]\{4\}//g; /^$/d" > manifest.yaml
-
 }
 
 _generate_samples () {
@@ -106,7 +104,6 @@ _myeloid_configs () {
 
     _generate_manifest "cancer_grch38" "myeloid"
     _generate_samples "${arr[1]}" "${arr[0]}" "true"
-
 }
 
 main() {
@@ -147,4 +144,3 @@ main() {
     zip=$(dx upload "${sample_name}.opencga_configs.zip" --brief)
     dx-jobutil-add-output config_zip "$zip" --class=file
 }
-
