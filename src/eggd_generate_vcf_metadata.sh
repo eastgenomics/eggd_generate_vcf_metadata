@@ -117,7 +117,7 @@ main() {
     echo "vcf ID: '$vcf'"
     echo "vcf name: $vcf_name"
 
-    # _prefix won't work, get prefix ourselves
+    # get prefix of name
     IFS='.' read -r vcf_prefix _ <<< "$vcf_name"
 
     # get just the sample name (i.e. sample name + _S[0-9]{1,2}_L001)
