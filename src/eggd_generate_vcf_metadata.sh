@@ -89,12 +89,50 @@ _generate_samples () {
     | sed "s/^[ ]\{4\}//g; /^$/d" > samples.yaml
 }
 
+_validate_myeloid_name () {
+  # function to check if given myeloid sample names are valid
+  local vcf_name=$1
+
+  if [[ "${vcf_name,,}" == *"oncospan"* ]] || [[ "$vcf_name" == *"TMv2OCT20"* ]]
+  then
+    # sample is a control => skip as we won't upload
+    echo "Sample is a control: ${vcf_name}"
+    return
+  fi
+
+  if [[ "$validate_name" ]]; then
+    if ! expr "${arr[0]}" : "^[0-9]*$" >/dev/null || \
+       ! expr "${arr[1]}" : "^[0-9A-Za-z]*$" >/dev/null || \
+       ! expr "${arr[2]}" : "^[0-9A-Za-z]*$" >/dev/null || \
+       ! expr "${arr[3]}" : "^[0-9A-Za-z]*$" >/dev/null || \
+       ! expr "${arr[4]}" : "MYE" >/dev/null || \
+       ! expr "${arr[5]}" : "[MFUN]" >/dev/null || \
+       ! expr "${arr[6]}" : "EGG2" >/dev/null
+    then
+      # some part of sample name invalid
+      printf "\nSample name appears to be invalid: %s\n" "$vcf_name"
+      printf "\nExiting now.\n"
+    else
+      printf "\nValid sample name: %s\n" "$vcf_name"
+    fi
+  fi
+}
+
+
 _myeloid_configs () {
     # generates config files for myeloid samples
 
     # split vcf filename parts to an array
     # first 7 fields of sample name separate + rest (e.g. _S11_L001...)
+    # 7 fields should look something like:
+    # 123456-1234Z5678-BM-MPD-MYE-F-EGG2
     IFS='-' read -a arr <<< "$vcf_name"
+
+    # sense check parsed out sample names parts are correct
+    # unless validate_name is set to false
+    if [[ -n "$validate_name" ]]; then
+      _validate_myeloid_name "$vcf_name"
+    fi
 
     _generate_clinical "HaemOnc" "H${arr[1]}" "haemonc_genes_all" \
                         "HIGH" "${arr[0]}" "${arr[1]}" \
@@ -144,3 +182,7 @@ main() {
     zip=$(dx upload "${sample_name}.opencga_configs.zip" --brief)
     dx-jobutil-add-output config_zip "$zip" --class=file
 }
+
+
+
+IFS='-' read -a arr <<< "$vcf_name"; if ! expr "${arr[0]}" : "^[0-9]*$" >/dev/null || ! expr "${arr[1]}" : "^[0-9A-Za-z]*$" >/dev/null || expr "${arr[2]}" : "^[A-Za-z]*$" >/dev/null || ! expr "${arr[3]}" : "^[A-Za-z]*$" >/dev/null || ! expr "${arr[4]}" : "MYE" >/dev/null || ! expr "${arr[5]}" : "[MFUN]" >/dev/null || ! expr "${arr[6]}" : "EGG2" >/dev/null; then echo "Sample name appears to be invalid"; exit 1; else echo "Echo valid sample name"; fi

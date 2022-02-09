@@ -15,6 +15,14 @@
           "*"
         ],
         "help": ""
+      },
+      {
+        "name": "validate_name",
+        "label": "validate name",
+        "class": "boolean",
+        "optional": true,
+        "default": true,
+        "help": "set false to check sample name for validity before splitting"
       }
     ],
     "outputSpec": [
