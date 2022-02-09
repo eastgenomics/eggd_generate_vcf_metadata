@@ -102,14 +102,15 @@ _validate_myeloid_name () {
   fi
 
   if [[ "$validate_name" ]]; then
-    # name format: individualID-sampleID-sampleType-disorder-assay-sex-EGG2
-    if ! expr "${arr[0]}" : "^[0-9]*$" >/dev/null || \
+    # zettaID-sampleID-individualID-seqAttempt-sampleType-assay-sex-EGG2
+    if ! expr "${arr[0]}" : "^[0-9A-Za-z]*$" >/dev/null || \
        ! expr "${arr[1]}" : "^[0-9A-Za-z]*$" >/dev/null || \
        ! expr "${arr[2]}" : "^[0-9A-Za-z]*$" >/dev/null || \
-       ! expr "${arr[3]}" : "^[0-9A-Za-z]*$" >/dev/null || \
-       ! expr "${arr[4]}" : "MYE" >/dev/null || \
-       ! expr "${arr[5]}" : "[MFUN]" >/dev/null || \
-       ! expr "${arr[6]}" : "EGG2" >/dev/null
+       ! expr "${arr[3]}" : "^[0-9]{1}$" >/dev/null || \
+       ! expr "${arr[4]}" : "^[0-9A-Za-z]*$" >/dev/null || \
+       ! expr "${arr[5]}" : "MYE" >/dev/null || \
+       ! expr "${arr[6]}" : "[MFUN]" >/dev/null || \
+       ! expr "${arr[7]}" : "EGG2" >/dev/null
     then
       # some part of sample name invalid
       printf "\nSample name appears to be invalid: %s\n" "$vcf_name"
@@ -125,9 +126,11 @@ _myeloid_configs () {
     # generates config files for myeloid samples
 
     # split vcf filename parts to an array
-    # first 7 fields of sample name separate + rest (e.g. _S11_L001...)
-    # 7 fields should look something like:
-    # 123456-1234Z5678-BM-MPD-MYE-F-EGG2
+    # first 8 fields of sample name separate + rest (e.g. _S11_L001...)
+    # 8 fields should look like:
+    # zettaID-sampleID-individualID-seqAttempt-sampleType-assay-sex-EGG2
+    # H1234Z5678M-1234Z5678-123456-BM-MPD-MYE-F-EGG2
+
     IFS='-' read -a arr <<< "$vcf_name"
 
     # sense check parsed out sample names parts are correct
