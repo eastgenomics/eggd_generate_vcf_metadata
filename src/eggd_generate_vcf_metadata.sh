@@ -97,10 +97,12 @@ _validate_myeloid_name () {
   then
     # sample is a control => skip as we won't upload
     echo "Sample is a control: ${vcf_name}"
-    return
+    echo "Exiting now as controls won't be uploaded."
+    exit 0
   fi
 
   if [[ "$validate_name" ]]; then
+    # name format: individualID-sampleID-sampleType-disorder-assay-sex-EGG2
     if ! expr "${arr[0]}" : "^[0-9]*$" >/dev/null || \
        ! expr "${arr[1]}" : "^[0-9A-Za-z]*$" >/dev/null || \
        ! expr "${arr[2]}" : "^[0-9A-Za-z]*$" >/dev/null || \
