@@ -108,13 +108,14 @@ _validate_myeloid_name () {
        ! expr "${arr[2]}" : "^[0-9A-Za-z]*$" >/dev/null || \
        ! expr "${arr[3]}" : "^[0-9]{1}$" >/dev/null || \
        ! expr "${arr[4]}" : "^[0-9A-Za-z]*$" >/dev/null || \
-       ! expr "${arr[5]}" : "MYE" >/dev/null || \
-       ! expr "${arr[6]}" : "[MFUN]" >/dev/null || \
-       ! expr "${arr[7]}" : "EGG2" >/dev/null
+       ! expr "${arr[-3]}" : "MYE" >/dev/null || \
+       ! expr "${arr[-2]}" : "[MFUN]" >/dev/null || \
+       ! expr "${arr[-1]}" : "EGG2" >/dev/null
     then
       # some part of sample name invalid
       printf "\nSample name appears to be invalid: %s\n" "$vcf_name"
       printf "\nExiting now.\n"
+      exit 1
     else
       printf "\nValid sample name: %s\n" "$vcf_name"
     fi
