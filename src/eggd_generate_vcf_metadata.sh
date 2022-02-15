@@ -188,7 +188,3 @@ main() {
     zip=$(dx upload "${sample_name}.opencga_configs.zip" --brief)
     dx-jobutil-add-output config_zip "$zip" --class=file
 }
-
-
-
-IFS='-' read -a arr <<< "$vcf_name"; if ! expr "${arr[0]}" : "^[0-9]*$" >/dev/null || ! expr "${arr[1]}" : "^[0-9A-Za-z]*$" >/dev/null || expr "${arr[2]}" : "^[A-Za-z]*$" >/dev/null || ! expr "${arr[3]}" : "^[A-Za-z]*$" >/dev/null || ! expr "${arr[4]}" : "MYE" >/dev/null || ! expr "${arr[5]}" : "[MFUN]" >/dev/null || ! expr "${arr[6]}" : "EGG2" >/dev/null; then echo "Sample name appears to be invalid"; exit 1; else echo "Echo valid sample name"; fi
