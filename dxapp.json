@@ -22,7 +22,7 @@
         "class": "boolean",
         "optional": true,
         "default": true,
-        "help": "set false to check sample name for validity before splitting"
+        "help": "determines if to check validity of sample name before generating configs"
       }
     ],
     "outputSpec": [

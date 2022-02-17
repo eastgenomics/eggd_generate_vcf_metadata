@@ -37,8 +37,7 @@ _generate_clinical () {
 _generate_individuals () {
     # generates individuals.yaml
     local disorder=$1
-    local id=$2
-    local name=$3
+    local individual_id=$2
     local sex=$4
 
     # map single char sex values to words
@@ -57,7 +56,7 @@ _generate_individuals () {
     name: %s
     sex:
       id: %s
-    ''' "$disorder" "'$id'" "'$name'" "$sex" \
+    ''' "$disorder" "'$individual_id'" "'$individual_id'" "$sex" \
     | sed "s/^[ ]\{4\}//g; /^$/d" > individuals.yaml
 }
 
@@ -102,7 +101,7 @@ _validate_myeloid_name () {
   fi
 
   if [[ "$validate_name" ]]; then
-    # zettaID-sampleID-individualID-seqAttempt-sampleType-assay-sex-EGG2
+    # zettaID-sampleID-individualID-seqAttempt-sampleType-assay-MYE-sex-EGG2
     if ! expr "${arr[0]}" : "^[0-9A-Za-z]*$" >/dev/null || \
        ! expr "${arr[1]}" : "^[0-9A-Za-z]*$" >/dev/null || \
        ! expr "${arr[2]}" : "^[0-9A-Za-z]*$" >/dev/null || \
@@ -128,26 +127,33 @@ _myeloid_configs () {
 
     # split vcf filename parts to an array
     # first 8 fields of sample name separate + rest (e.g. _S11_L001...)
-    # 8 fields should look like:
-    # zettaID-sampleID-individualID-seqAttempt-sampleType-assay-sex-EGG2
-    # H1234Z5678M-1234Z5678-123456-BM-MPD-MYE-F-EGG2
+    # 9 fields should look like:
 
-    IFS='-' read -a arr <<< "$vcf_name"
+    # zettaID-sampleID-individualID-seqAttempt-sampleType-assay-MYE-sex-EGG2
+    # H1234Z5678M-1234Z5678-123456-1-BM-MPD-MYE-F-EGG2
+
+    IFS='-' read -ar arr <<< "$vcf_name"
 
     # sense check parsed out sample names parts are correct
     # unless validate_name is set to false
-    if [[ -n "$validate_name" ]]; then
+    if [ "$validate_name" = true ]; then
       _validate_myeloid_name "$vcf_name"
     fi
 
-    _generate_clinical "HaemOnc" "H${arr[1]}" "haemonc_genes_all" \
-                        "HIGH" "${arr[0]}" "${arr[1]}" \
+    # generate clinical.yaml -> pass zettaID (0) individualID (2)
+    # and sampleID (1)
+    _generate_clinical "HaemOnc" "${arr[0]}" "haemonc_genes_all" \
+                        "HIGH" "${arr[2]}" "${arr[1]}" \
                         "READY_FOR_INTERPRETATION" "CANCER"
 
-    _generate_individuals "HaemOnc" "${arr[0]}" "${arr[0]}" "${arr[5]}"
+    # generate individuals.yaml -> pass individual ID & sex
+    _generate_individuals "HaemOnc" "${arr[2]}" "${arr[-2]}"
 
+    # generate manifest.yaml
     _generate_manifest "cancer_grch38" "myeloid"
-    _generate_samples "${arr[1]}" "${arr[0]}" "true"
+
+    # generate sampels.yaml -> pass sampleID (1) and individualID (2)
+    _generate_samples "${arr[1]}" "${arr[2]}" "true"
 }
 
 main() {
@@ -188,3 +194,4 @@ main() {
     zip=$(dx upload "${sample_name}.opencga_configs.zip" --brief)
     dx-jobutil-add-output config_zip "$zip" --class=file
 }
+main
