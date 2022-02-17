@@ -14,4 +14,61 @@ One or more VCF files, will always use the first VCF name for generating metadat
 
 ## What does this app output?
 
-This app outputs a JSON file for openCGA upload process.
+This app outputs a zipn of YAML config files for openCGA upload process.
+
+Example configs given below from sample name: `H1234Z5678M-1234Z5678-123456-1-BM-MPD-MYE-F-EGG2`
+
+**manifest.yaml**
+
+```
+configuration:
+  projectId: cancer_grch38
+study:
+  id: myeloid
+
+```
+
+
+**samples.yaml**
+
+```
+- id: 1234Z5678
+  individualId: '123456'
+  somatic: true
+
+```
+
+
+
+**individuals.yaml**
+
+```
+disorders:
+- id: HaemOnc
+id: '123456'
+name: '123456'
+sex:
+  id: Female
+
+```
+
+
+**clinical.yaml**
+
+```
+- disorder:
+    id: HaemOnc
+  id: H1234Z5678M
+  panels:
+  - id: haemonc_genes_all
+  priority:
+    id: HIGH
+  proband:
+    id: '123456'
+    samples:
+    - id: 1234Z5678
+  status:
+    id: READY_FOR_INTERPRETATION
+  type: CANCER
+
+```
