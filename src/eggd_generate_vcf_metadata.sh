@@ -100,7 +100,7 @@ _validate_myeloid_name () {
     exit 0
   fi
 
-  if [[ "$validate_name" ]]; then
+  if [ "$validate_name" = true ]; then
     # zettaID-sampleID-individualID-seqAttempt-sampleType-assay-MYE-sex-EGG2
     if ! expr "${arr[0]}" : "^[0-9A-Za-z]*$" >/dev/null || \
        ! expr "${arr[1]}" : "^[0-9A-Za-z]*$" >/dev/null || \
@@ -128,10 +128,8 @@ _myeloid_configs () {
     # split vcf filename parts to an array
     # first 8 fields of sample name separate + rest (e.g. _S11_L001...)
     # 9 fields should look like:
-
-    # zettaID-sampleID-individualID-seqAttempt-sampleType-assay-MYE-sex-EGG2
-    # H1234Z5678M-1234Z5678-123456-1-BM-MPD-MYE-F-EGG2
-
+    #   zettaID-sampleID-individualID-seqAttempt-sampleType-assay-MYE-sex-EGG2
+    #   H1234Z5678M-1234Z5678-123456-1-BM-MPD-MYE-F-EGG2
     IFS='-' read -ar arr <<< "$vcf_name"
 
     # sense check parsed out sample names parts are correct
@@ -183,6 +181,16 @@ main() {
         exit 1
     fi
 
+    # check all files have been written
+    if [ ! -f samples.yaml ] || [ ! -f clinical.yaml ] || \
+       [ ! -f individuals.yaml ] || [ ! -f manifest.yaml ];
+       then
+          printf "One or more config files not generated"
+          printf "Configs written: %s" "$(find . -name '*.yaml')"
+          printf "Exiting now."
+          exit 1
+    fi
+
     # cat files to be in logs for easier checking if needed
     for file in ./*.yaml; do cat "$file"; done
 
@@ -194,4 +202,5 @@ main() {
     zip=$(dx upload "${sample_name}.opencga_configs.zip" --brief)
     dx-jobutil-add-output config_zip "$zip" --class=file
 }
+
 main
