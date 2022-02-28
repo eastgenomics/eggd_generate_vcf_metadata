@@ -130,7 +130,15 @@ _myeloid_configs () {
     # 9 fields should look like:
     #   zettaID-sampleID-individualID-seqAttempt-sampleType-assay-MYE-sex-EGG2
     #   H1234Z5678M-1234Z5678-123456-1-BM-MPD-MYE-F-EGG2
-    IFS='-' read -ar arr <<< "$vcf_name"
+    IFS='-' read -a arr <<< "$vcf_name"
+
+    if [[ ! "${arr[0]}" =~ ^H.* ]]; then
+      # Zetta case ID has not been added as first field, add it to
+      # array in first position with rest of fields following
+      printf "File name does not contain Zetta ID: %s" "${arr[@]}"
+      arr=("H${arr[0]}M ${arr[@]}")
+      printf "File name fields after adding Zetta ID: %s" "${arr[@]}"
+    fi
 
     # sense check parsed out sample names parts are correct
     # unless validate_name is set to false
