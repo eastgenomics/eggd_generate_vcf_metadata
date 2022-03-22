@@ -5,12 +5,14 @@ set -exo pipefail
 
 _generate_clinical () {
     # generates clinical.yaml file
+    mark-section "Generating clinical.yaml"
+
     local disorder=$1
     local opencga_sample_id=$2
     local panel=$3
     local priority=$4
     local individual_id=$5
-    local sample_name=$6
+    local sample_id=$6
     local status=$7
     local type=$8
 
@@ -30,15 +32,17 @@ _generate_clinical () {
         id: %s
       type: %s
     ''' "${disorder}" "${opencga_sample_id}" "${panel}" "${priority}" \
-        "'${individual_id}'" "${sample_name}" "${status}" "${type}"\
+        "'${individual_id}'" "${sample_id}" "${status}" "${type}"\
         | sed "s/^[ ]\{4\}//g; /^$/d" > clinical.yaml
 }
 
 _generate_individuals () {
     # generates individuals.yaml
+    mark-section "Generating individuals.yaml"
+
     local disorder=$1
     local individual_id=$2
-    local sex=$4
+    local sex=$3
 
     # map single char sex values to words
     if [[ "$sex" == "F" ]]; then
@@ -62,6 +66,8 @@ _generate_individuals () {
 
 _generate_manifest () {
     # generates manifest.yaml file
+    mark-section "Generating manifest.yaml"
+
     local project=$1
     local study=$2
 
@@ -76,7 +82,9 @@ _generate_manifest () {
 
 _generate_samples () {
     # generates samples.yaml
-    local sample_name=$1
+    mark-section "Generating samples.yaml"
+
+    local sample_id=$1
     local individual_id=$2
     local somatic=$3
 
@@ -84,15 +92,17 @@ _generate_samples () {
     - id: %s
       individualId: %s
       somatic: %s
-    ''' "$sample_name" "'$individual_id'" "$somatic" \
+    ''' "$sample_id" "'$individual_id'" "$somatic" \
     | sed "s/^[ ]\{4\}//g; /^$/d" > samples.yaml
 }
 
 _validate_myeloid_name () {
   # function to check if given myeloid sample names are valid
+  # $1 -> full vcf name string
+  mark-section "Validating sample name"
   local vcf_name=$1
 
-  if [[ "${vcf_name,,}" == *"oncospan"* ]] || [[ "$vcf_name" == *"TMv2OCT20"* ]]
+  if [[ "${vcf_name,,}" == *"oncospan"* ]] || [[ "$vcf_name,," == *"TMv2OCT20"* ]]
   then
     # sample is a control => skip as we won't upload
     echo "Sample is a control: ${vcf_name}"
@@ -100,45 +110,38 @@ _validate_myeloid_name () {
     exit 0
   fi
 
-  if [ "$validate_name" = true ]; then
-    # zettaID-sampleID-individualID-seqAttempt-sampleType-assay-MYE-sex-EGG2
-    if ! expr "${arr[0]}" : "^[0-9A-Za-z]*$" >/dev/null || \
-       ! expr "${arr[1]}" : "^[0-9A-Za-z]*$" >/dev/null || \
-       ! expr "${arr[2]}" : "^[0-9A-Za-z]*$" >/dev/null || \
-       ! expr "${arr[3]}" : "^[0-9]{1}$" >/dev/null || \
-       ! expr "${arr[4]}" : "^[0-9A-Za-z]*$" >/dev/null || \
-       ! expr "${arr[-3]}" : "MYE" >/dev/null || \
-       ! expr "${arr[-2]}" : "[MFUN]" >/dev/null || \
-       ! expr "${arr[-1]}" : "EGG2" >/dev/null
-    then
-      # some part of sample name invalid
-      printf "\nSample name appears to be invalid: %s\n" "$vcf_name"
-      printf "\nExiting now.\n"
-      exit 1
-    else
-      printf "\nValid sample name: %s\n" "$vcf_name"
-    fi
+  # split out name to array to check
+  IFS='-' read -a arr <<< "$vcf_name"
+
+  # sampleID-individualID-seqAttempt-sampleType-assay-MYE-sex-EGG2
+  # e.g. 2200626-22006Z0026-2-PB-MPD-MYE-F-EGG2
+  if ! expr "${arr[0]}" : "^[0-9]*$" >/dev/null || \
+      ! expr "${arr[1]}" : "^[0-9A-Za-z]*$" >/dev/null || \
+      ! expr "${arr[2]}" : "^[0-9]$" >/dev/null || \
+      ! expr "${arr[-3]}" : "MYE" >/dev/null || \
+      ! expr "${arr[-2]}" : "[MFUN]" >/dev/null || \
+      ! expr "${arr[-1]}" : "EGG2" >/dev/null
+  then
+    # some part of sample name invalid
+    printf "\nSample name appears to be invalid: %s\n" "$vcf_name"
+    printf "\nExiting now.\n"
+    exit 1
+  else
+    printf "\nValid sample name: %s\n" "$vcf_name"
   fi
 }
 
 
 _myeloid_configs () {
     # generates config files for myeloid samples
+    local vcf_name=$1
 
     # split vcf filename parts to an array
     # first 8 fields of sample name separate + rest (e.g. _S11_L001...)
-    # 9 fields should look like:
-    #   zettaID-sampleID-individualID-seqAttempt-sampleType-assay-MYE-sex-EGG2
-    #   H1234Z5678M-1234Z5678-123456-1-BM-MPD-MYE-F-EGG2
+    # 8 fields should look like:
+    #   sampleID-individualID-seqAttempt-sampleType-assay-MYE-sex-EGG2
+    #   1234Z5678-123456-1-BM-MPD-MYE-F-EGG2
     IFS='-' read -a arr <<< "$vcf_name"
-
-    if [[ ! "${arr[0]}" =~ ^H.* ]]; then
-      # Zetta case ID has not been added as first field, add it to
-      # array in first position with rest of fields following
-      printf "File name does not contain Zetta ID: %s" "${arr[@]}"
-      arr=("H${arr[0]}M ${arr[@]}")
-      printf "File name fields after adding Zetta ID: %s" "${arr[@]}"
-    fi
 
     # sense check parsed out sample names parts are correct
     # unless validate_name is set to false
@@ -146,43 +149,44 @@ _myeloid_configs () {
       _validate_myeloid_name "$vcf_name"
     fi
 
-    # generate clinical.yaml -> pass zettaID (0) individualID (2)
-    # and sampleID (1)
-    _generate_clinical "HaemOnc" "${arr[0]}" "haemonc_genes_all" \
-                        "HIGH" "${arr[2]}" "${arr[1]}" \
+    # generate clinical.yaml -> pass zetta case ID (from individual ID (1)),
+    # individualID (1) and sampleID (0)
+    _generate_clinical "HaemOnc" "H${arr[1]}M" "haemonc_genes_all" \
+                        "HIGH" "${arr[1]}" "${arr[0]}" \
                         "READY_FOR_INTERPRETATION" "CANCER"
 
     # generate individuals.yaml -> pass individual ID & sex
-    _generate_individuals "HaemOnc" "${arr[2]}" "${arr[-2]}"
+    _generate_individuals "HaemOnc" "${arr[1]}" "${arr[-2]}"
 
     # generate manifest.yaml
     _generate_manifest "cancer_grch38" "myeloid"
 
-    # generate sampels.yaml -> pass sampleID (1) and individualID (2)
-    _generate_samples "${arr[1]}" "${arr[2]}" "true"
+    # generate samples.yaml -> pass sampleID (1) and individualID (2)
+    _generate_samples "${arr[0]}" "${arr[1]}" "true"
 }
 
 main() {
-
     # input is array, select the first to get name from
     # awk to get out the file ID as it is formatted as
     # {"$dnanexus_link": "file-xxx"}
-    vcf=$(awk -F'"' '{print $4}' <<< "${vcf[0]}")
+    local vcf
+    local vcf_name
+    local full_name
+
+    vcf=$(awk -F'"' '{print $4}' <<< "${vcfs[0]}")
     vcf_name=$(dx describe --json "${vcf}" | jq -r '.name')
 
-    echo "vcf ID: '$vcf'"
-    echo "vcf name: $vcf_name"
+    echo "Using vcf ID: '$vcf'"
+    echo "Using vcf name: $vcf_name"
 
-    # get prefix of name
-    IFS='.' read -r vcf_prefix _ <<< "$vcf_name"
-
-    # get just the sample name (i.e. sample name + _S[0-9]{1,2}_L001)
-    sample_name=$(cut -d'_' -f-3 <<< "$vcf_name")
+    # get just the full sample name (i.e. sample name + _S[0-9]{1,2}_L001)
+    # used to name output zip file
+    full_name=$(cut -d'_' -f-3 <<< "$vcf_name")
 
     # generate required yaml files
     if [[ "$vcf_name" =~ "EGG2" ]]; then
         # check VCF is haemonc
-       _myeloid_configs "$sample_name"
+       _myeloid_configs "$vcf_name"
     else
         # exit since this only handles myeloid samples for now
         printf "%s does not appear to be a haemonc VCF file. Exiting now" "$vcf_name"
@@ -203,12 +207,11 @@ main() {
     for file in ./*.yaml; do cat "$file"; done
 
     # zip yaml files for upload
-    zip --junk-paths "${sample_name}.opencga_configs.zip" \
+    zip --junk-paths "${full_name}.opencga_configs.zip" \
         clinical.yaml individuals.yaml manifest.yaml samples.yaml
 
     # upload zip of configs
-    zip=$(dx upload "${sample_name}.opencga_configs.zip" --brief)
+    mark-section "Uploading output file"
+    zip=$(dx upload "${full_name}.opencga_configs.zip" --brief)
     dx-jobutil-add-output config_zip "$zip" --class=file
 }
-
-main

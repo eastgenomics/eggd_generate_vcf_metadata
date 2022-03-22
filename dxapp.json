@@ -7,7 +7,7 @@
     "githubRelease": "v1.0.0",
     "inputSpec": [
       {
-        "name": "vcf",
+        "name": "vcfs",
         "label": "vcf",
         "class": "array:file",
         "optional": false,
