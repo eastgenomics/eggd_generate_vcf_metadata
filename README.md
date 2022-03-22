@@ -16,7 +16,7 @@ One or more VCF files, will always use the first VCF name for generating metadat
 
 This app outputs a zipn of YAML config files for openCGA upload process.
 
-Example configs given below from sample name: `H1234Z5678M-1234Z5678-123456-1-BM-MPD-MYE-F-EGG2`
+Example configs given below from sample name: `123456-1234Z5678-1-BM-MPD-MYE-F-EGG2`
 
 **manifest.yaml**
 
@@ -32,8 +32,8 @@ study:
 **samples.yaml**
 
 ```
-- id: 1234Z5678
-  individualId: '123456'
+- id: '123456'
+  individualId: '1234Z5678'
   somatic: true
 
 ```
@@ -45,8 +45,8 @@ study:
 ```
 disorders:
 - id: HaemOnc
-id: '123456'
-name: '123456'
+id: '1234Z5678'
+name: '1234Z5678'
 sex:
   id: Female
 
@@ -64,9 +64,9 @@ sex:
   priority:
     id: HIGH
   proband:
-    id: '123456'
+    id: '1234Z5678'
     samples:
-    - id: 1234Z5678
+    - id: 123456
   status:
     id: READY_FOR_INTERPRETATION
   type: CANCER
