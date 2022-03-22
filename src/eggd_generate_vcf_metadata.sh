@@ -107,6 +107,7 @@ _validate_myeloid_name () {
     # sample is a control => skip as we won't upload
     echo "Sample is a control: ${vcf_name}"
     echo "Exiting now as controls won't be uploaded."
+    dx tag "$DX_JOB_ID" "Control sample: no metadata generated"
     exit 0
   fi
 
