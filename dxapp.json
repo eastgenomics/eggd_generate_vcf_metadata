@@ -30,6 +30,7 @@
         "name": "config_zip",
         "label": "config zip",
         "class": "file",
+        "optional": true,
         "patterns": [
           "*.zip"
         ],
