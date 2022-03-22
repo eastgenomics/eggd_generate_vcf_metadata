@@ -182,7 +182,7 @@ main() {
 
     # get just the full sample name (i.e. sample name + _S[0-9]{1,2}_L001)
     # used to name output zip file
-    full_name=$(cut -d'_' -f-3 <<< "$vcf_name")
+    output_prefix=$(cut -d'_' -f-3 <<< "$vcf_name")
 
     # generate required yaml files
     if [[ "$vcf_name" =~ "EGG2" ]]; then
@@ -208,11 +208,11 @@ main() {
     for file in ./*.yaml; do cat "$file"; done
 
     # zip yaml files for upload
-    zip --junk-paths "${full_name}.opencga_configs.zip" \
+    zip --junk-paths "${output_prefix}.opencga_configs.zip" \
         clinical.yaml individuals.yaml manifest.yaml samples.yaml
 
     # upload zip of configs
     mark-section "Uploading output file"
-    zip=$(dx upload "${full_name}.opencga_configs.zip" --brief)
+    zip=$(dx upload "${output_prefix}.opencga_configs.zip" --brief)
     dx-jobutil-add-output config_zip "$zip" --class=file
 }
