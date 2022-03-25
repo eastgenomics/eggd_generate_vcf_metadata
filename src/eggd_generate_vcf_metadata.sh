@@ -169,7 +169,7 @@ _myeloid_configs () {
 main() {
     local vcf
     local vcf_name
-    local full_name
+    local output_prefix
 
     # input is array, select the first to get name from
     # awk to get out the file ID as it is formatted as
@@ -180,7 +180,7 @@ main() {
     echo "Using vcf ID: '$vcf'"
     echo "Using vcf name: $vcf_name"
 
-    \# get just the full sample name (i.e. sample name + _S[0-9]{1,2}_L001)
+    # get just the full sample name (i.e. sample name + _S[0-9]{1,2}_L001)
     # used to name output zip file
     output_prefix=$(cut -d'_' -f-3 <<< "$vcf_name")
 
