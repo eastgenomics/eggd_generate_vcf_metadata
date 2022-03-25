@@ -167,20 +167,20 @@ _myeloid_configs () {
 }
 
 main() {
-    # input is array, select the first to get name from
-    # awk to get out the file ID as it is formatted as
-    # {"$dnanexus_link": "file-xxx"}
     local vcf
     local vcf_name
     local full_name
 
+    # input is array, select the first to get name from
+    # awk to get out the file ID as it is formatted as
+    # {"$dnanexus_link": "file-xxx"}
     vcf=$(awk -F'"' '{print $4}' <<< "${vcfs[0]}")
     vcf_name=$(dx describe --json "${vcf}" | jq -r '.name')
 
     echo "Using vcf ID: '$vcf'"
     echo "Using vcf name: $vcf_name"
 
-    # get just the full sample name (i.e. sample name + _S[0-9]{1,2}_L001)
+    \# get just the full sample name (i.e. sample name + _S[0-9]{1,2}_L001)
     # used to name output zip file
     output_prefix=$(cut -d'_' -f-3 <<< "$vcf_name")
 
