@@ -119,23 +119,23 @@ def parse_samplename(sample, validate_name) -> list:
 
     # mapping of field to expected string format
     field_format = {
+        0: r"",
         1: r"",
         2: r"",
         3: r"",
-        4: r"",
-        5: r"",
-        6: r""
+        4: r"[MFU]",
+        5: r""
     }
 
     # test fields are formatted as expected
     errors = []
     for idx, field in name_fields:
-        if not re.search(field_format[idx + 1], field):
+        if not re.search(field_format[idx], field):
             errors.append(field)
 
     if errors:
         raise RuntimeError(
-            f"Error(s) in sample name format: {', '.join(errors)}"
+            f"Error(s) in sample name fields: {', '.join(errors)}"
         )
 
     return name_fields
@@ -169,7 +169,7 @@ def infer_caller(vcf_header) -> str:
             return name
 
     print("Could not determine variant caller from header of vcf")
-    return "unknown"
+    return None
 
 
 def write_manifest(config, template):
@@ -266,7 +266,7 @@ def write_samples(config, template, individual_id, sample_id):
         yaml.dump(template, fh)
 
 
-def write_clinical(config, template, individual_id, sample_id):
+def write_clinical(config, template, individual_id, sample_id, caller):
     """
     Populate and write the clinical.yaml file
 
@@ -280,6 +280,8 @@ def write_clinical(config, template, individual_id, sample_id):
         indiviudal ID parsed from samplename
     sample_id : str
         sample ID parsed from samplename
+    caller : str
+        variant caller used to generate vcf, parsed from header
 
     Outputs
     -------
@@ -290,9 +292,10 @@ def write_clinical(config, template, individual_id, sample_id):
         template.update(config['clinical'])
 
     # add in required fields
-    template['id'] = individual_id
+    template['id'] = f"{template.get('id')}{individual_id}"
     template['proband']['id'] = individual_id
     template['proband']['samples'][0]['id'] = sample_id
+    template['software'] = caller
 
     print(f"Populated clinical.yaml writing to file: {template}")
 
@@ -332,10 +335,6 @@ def main(vcfs, assay_config, validate_name):
     instrument_id, individual_id, clarity_id, epic_code, \
         sex, probeset = parse_samplename(file_name, validate_name)
 
-    # try parse caller from vcf header
-    header = read_vcf_header(file_name)
-    caller = infer_caller(header)
-
     # read in given  assay config and yaml templates
     clinical, individuals, manifest, samples = read_templates()
     config = json.loads(dxpy.DXFile(assay_config['$dnanexus_link']).read())
@@ -343,11 +342,15 @@ def main(vcfs, assay_config, validate_name):
     print("Config file values given to add to metadata configs:")
     PPRINT(config)
 
+    # try parse caller from vcf header
+    header = read_vcf_header(file_name)
+    caller = infer_caller(header)
+
     # populate templates and write to file
     write_manifest(config, manifest)
     write_individuals(config, individuals, individual_id, sex)
     write_samples(config, samples, individual_id, instrument_id)
-    write_clinical(config, clinical, individual_id, instrument_id)
+    write_clinical(config, clinical, individual_id, instrument_id, caller)
 
     # zip written files and add as output
     outname = f"{file_prefix}.opencga_configs.zip"

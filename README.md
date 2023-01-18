@@ -10,7 +10,12 @@ Required for generating metadata to import VCF into openCGA.
 
 ## What data are required for this app to run?
 
-One or more VCF files, will always use the first VCF name for generating metadata from.
+- one or more VCF files, will always use the first VCF name for generating metadata from.
+- assay config JSON file (see below)
+- validate_name (boolean) - controls if to validate sample name structure from vcf
+
+### Assay config
+
 
 ## What does this app output?
 
