@@ -1,0 +1,4 @@
+configuration:
+  projectId: cancer_grch38
+study:
+  id: myeloid

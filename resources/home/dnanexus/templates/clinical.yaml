@@ -1,0 +1,14 @@
+- disorder:
+    id: ''
+  id: ''
+  panels:
+  - id: ''
+  priority:
+    id: ''
+  proband:
+    id: ''
+    samples:
+    - id: ''
+  status:
+    id: READY_FOR_INTERPRETATION
+  type: ''

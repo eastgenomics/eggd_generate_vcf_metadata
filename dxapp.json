@@ -8,13 +8,13 @@
     "inputSpec": [
       {
         "name": "vcfs",
-        "label": "vcf",
+        "label": "vcfs",
         "class": "array:file",
         "optional": false,
         "patterns": [
           "*"
         ],
-        "help": ""
+        "help": "One or more files containing samplename to generate metadata from"
       },
       {
         "name": "validate_name",
@@ -44,7 +44,7 @@
         }
       },
       "interpreter": "bash",
-      "file": "src/eggd_generate_vcf_metadata.sh",
+      "file": "src/eggd_generate_vcf_metadata.py",
       "distribution": "Ubuntu",
       "release": "20.04",
       "version": "0"
