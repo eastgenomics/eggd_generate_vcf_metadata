@@ -1,4 +1,4 @@
 configuration:
-  projectId: cancer_grch38
+  projectId: ''
 study:
-  id: myeloid
+  id: ''
