@@ -3,8 +3,8 @@
     "title": "eggd_generate_vcf_metadata",
     "summary": "Generate metadata yaml configs for given VCF file to upload to openCGA",
     "dxapi": "1.0.0",
-    "version": "1.0.0",
-    "githubRelease": "v1.0.0",
+    "version": "1.1.0",
+    "githubRelease": "v1.1.0",
     "inputSpec": [
       {
         "name": "vcfs",
@@ -15,6 +15,13 @@
           "*"
         ],
         "help": "One or more files containing samplename to generate metadata from"
+      },
+      {
+        "name": "assay_config",
+        "label": "assay config",
+        "class": "file",
+        "optional": false,
+        "help": ""
       },
       {
         "name": "validate_name",
@@ -43,7 +50,7 @@
           "hours": 1
         }
       },
-      "interpreter": "bash",
+      "interpreter": "python3",
       "file": "src/eggd_generate_vcf_metadata.py",
       "distribution": "Ubuntu",
       "release": "20.04",

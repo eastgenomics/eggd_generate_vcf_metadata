@@ -1,18 +1,14 @@
 import gzip
 import json
-import os
-import pip
+from pprint import PrettyPrinter
 import re
 from typing import Union
 from zipfile import ZipFile
 
-# Install required packages
-for package in os.listdir("/home/dnanexus/packages"):
-    print(f"Installing {package}")
-    pip.main(["install", "--no-index", "--no-deps", f"packages/{package}"])
-
 import dxpy
 import yaml
+
+PPRINT = PrettyPrinter(indent=2).pprint
 
 
 def read_templates() -> Union[list, list, list, list]:
@@ -26,15 +22,19 @@ def read_templates() -> Union[list, list, list, list]:
     """
     with open('templates/clinical.yaml') as fh:
         clinical = yaml.safe_load(fh)
+        print(f"clinical.yaml template: {clinical}")
 
     with open('templates/individuals.yaml') as fh:
         individuals = yaml.safe_load(fh)
+        print(f"individuals.yaml template: {individuals}")
 
     with open('templates/manifest.yaml') as fh:
         manifest = yaml.safe_load(fh)
+        print(f"manifest.yaml template: {manifest}")
 
     with open('templates/samples.yaml') as fh:
         samples = yaml.safe_load(fh)
+        print(f"samples.manifest template: {samples}")
 
     return clinical, individuals, manifest, samples
 
@@ -52,14 +52,23 @@ def read_vcf_header(vcf) -> list:
     -------
     list
         header lines parsed from vcf
+
+    Raises
+    ------
+    RuntimeError
+        Raised when non-vcf passed
     """
     print(f"Reading from file: {vcf}")
+
     if vcf.endswith('.vcf'):
         file_handle = open(vcf)
-    if vcf.endswith('.vcf.gz'):
+    elif vcf.endswith('.vcf.gz'):
         file_handle = gzip.open(vcf)
     else:
-        return None
+        # doesn't appear to be a vcf
+        raise RuntimeError(
+            f"Invalid file passed - not a vcf: {vcf}"
+        )
 
     header = []
     while True:
@@ -71,10 +80,12 @@ def read_vcf_header(vcf) -> list:
 
     file_handle.close()
 
+    print(f"Size of header parsed from vcf: {len(header)}")
+
     return header
 
 
-def parse_samplename(sample) -> list:
+def parse_samplename(sample, validate_name) -> list:
     """
     Split samplename into constituent parts and validate format
 
@@ -82,6 +93,8 @@ def parse_samplename(sample) -> list:
     ----------
     sample : str
         samplename parsed from vcf filename
+    validate_name : bool
+        controls if to validate fields of sample name
 
     Returns
     -------
@@ -92,7 +105,6 @@ def parse_samplename(sample) -> list:
     ------
     AssertionError
         Raised when samplename does not have 6 fields
-
     RuntimeError
         Raised when one or more fields does not match expected format
     """
@@ -179,7 +191,10 @@ def write_manifest(config, template):
     if config.get('manifest'):
         template.update(config['manifest'])
 
-    with open('manifest.yaml') as fh:
+    print("Populated manifest.yaml writing to file:")
+    PPRINT(template)
+
+    with open('manifest.yaml', 'w') as fh:
         yaml.dump(template, fh)
 
 
@@ -197,7 +212,7 @@ def write_individuals(config, template, individual_id, sex):
         indiviudal ID parsed from samplename
     sex : str
         sex parsed from samplename
-    
+
     Outputs
     -------
     individuals.yaml
@@ -211,7 +226,10 @@ def write_individuals(config, template, individual_id, sex):
     template['name'] = individual_id
     template['sex']['id'] = sex
 
-    with open('individuals.yaml') as fh:
+    print("Populated individuals.yaml writing to file:")
+    PPRINT(template)
+
+    with open('individuals.yaml', 'w') as fh:
         yaml.dump(template, fh)
 
 
@@ -229,20 +247,22 @@ def write_samples(config, template, individual_id, sample_id):
         indiviudal ID parsed from samplename
     sample_id : str
         sample ID parsed from samplename
-    
+
     Outputs
     -------
     samples.yaml
     """
     # update template with any values from config
     if config.get('samples'):
-        template.update(config['samples'])
+        template[0].update(config['samples'])
 
     # add in required fields
-    template['id'] = sample_id
-    template['individualId'] =  individual_id
+    template[0]['id'] = sample_id
+    template[0]['individualId'] =  individual_id
 
-    with open('samples.yaml') as fh:
+    print(f"Populated samples.yaml writing to file: {template}")
+
+    with open('samples.yaml', 'w') as fh:
         yaml.dump(template, fh)
 
 
@@ -270,27 +290,47 @@ def write_clinical(config, template, individual_id, sample_id):
         template.update(config['clinical'])
 
     # add in required fields
-    template['proband']['id'] = sample_id
-    template['proband']['samples']['id']['individualId'] =  individual_id
+    template['id'] = individual_id
+    template['proband']['id'] = individual_id
+    template['proband']['samples'][0]['id'] = sample_id
 
-    with open('clinical.yaml') as fh:
+    print(f"Populated clinical.yaml writing to file: {template}")
+
+    with open('clinical.yaml', 'w') as fh:
         yaml.dump(template, fh)
 
 
 @dxpy.entry_point('main')
-def main():
-    """Main entry point for app"""
-    dxpy.set_workspace_id(os.environ.get("DX_PROJECT_CONTEXT"))
+def main(vcfs, assay_config, validate_name):
+    """
+    Main entry point for app
 
+    Parameters
+    ----------
+    vcfs : list
+        input vcf(s) to use to generate metadata, will use first
+        one if more than one passed
+    assay_config : dict
+        dnanexus_link to file ID of given assay config, contains assay
+        specific values to add to each of the metadata YAML files
+    validate_name : bool
+        controls if to validate fields of sample name
+
+    Returns
+    -------
+    dict
+        dnanexus_link of uploaded config file zip file ID
+    -------
+    """
     # get samplename and download vcf
-    file = dxpy.DXFile(vcfs[0].get_id())
+    file = dxpy.DXFile(vcfs[0]['$dnanexus_link'])
     file_name = file.describe()['name']
     file_prefix = file_name.replace('.vcf', '').replace('.gz', '')
     dxpy.download_dxfile(file, file_name)
 
     # split name and validate parts
     instrument_id, individual_id, clarity_id, epic_code, \
-        sex, probeset = parse_samplename(file_name)
+        sex, probeset = parse_samplename(file_name, validate_name)
 
     # try parse caller from vcf header
     header = read_vcf_header(file_name)
@@ -298,7 +338,10 @@ def main():
 
     # read in given  assay config and yaml templates
     clinical, individuals, manifest, samples = read_templates()
-    config = json.loads(dxpy.DXFile('config').read())
+    config = json.loads(dxpy.DXFile(assay_config['$dnanexus_link']).read())
+
+    print("Config file values given to add to metadata configs:")
+    PPRINT(config)
 
     # populate templates and write to file
     write_manifest(config, manifest)
@@ -314,7 +357,7 @@ def main():
         fh.write('samples.yaml')
         fh.write('clinical.yaml')
 
-    outfile = dxpy.upload_local_files(outname)
+    outfile = dxpy.upload_local_file(outname)
     return {'config_zip': dxpy.dxlink(outfile)}
 
 dxpy.run()
