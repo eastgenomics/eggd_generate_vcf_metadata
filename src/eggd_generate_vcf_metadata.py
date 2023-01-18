@@ -11,14 +11,14 @@ import yaml
 PPRINT = PrettyPrinter(indent=2).pprint
 
 
-def read_templates() -> Union[list, list, list, list]:
+def read_templates() -> Union[dict, dict, dict, dict]:
     """
-    Reads yaml config templates from resources/home/dnanexus/templates/
+    Reads YAML config templates from resources/home/dnanexus/templates/
 
     Returns
     -------
-    Union[list, list, list, list]
-        _description_
+    Union[dict, dict, dict, dict]
+        dicts of read in YAML templates
     """
     with open('templates/clinical.yaml') as fh:
         clinical = yaml.safe_load(fh)
