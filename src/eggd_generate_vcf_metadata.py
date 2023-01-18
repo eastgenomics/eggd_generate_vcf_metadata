@@ -1,9 +1,15 @@
 import gzip
 import json
 import os
+import pip
 import re
 from typing import Union
 from zipfile import ZipFile
+
+# Install required packages
+for package in os.listdir("/home/dnanexus/packages"):
+    print(f"Installing {package}")
+    pip.main(["install", "--no-index", "--no-deps", f"packages/{package}"])
 
 import dxpy
 import yaml
