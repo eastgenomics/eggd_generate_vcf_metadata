@@ -68,7 +68,7 @@ def read_vcf_header(vcf) -> list:
     return header
 
 
-def parse_samplename(sample):
+def parse_samplename(sample) -> list:
     """
     Split samplename into constituent parts and validate format
 
@@ -76,6 +76,19 @@ def parse_samplename(sample):
     ----------
     sample : str
         samplename parsed from vcf filename
+
+    Returns
+    -------
+    name_fields : list
+        list of field names parsed from samplename
+
+    Raises
+    ------
+    AssertionError
+        Raised when samplename does not have 6 fields
+
+    RuntimeError
+        Raised when one or more fields does not match expected format
     """
     name_fields = sample.split('-')
 
@@ -151,6 +164,10 @@ def write_manifest(config, template):
         json config for assay
     template : dict
         manifest.yaml config read in with yaml.safe_loads()
+
+    Outputs
+    -------
+    manifest.yaml
     """
     # update template with any values from config
     if config.get('manifest'):
@@ -174,6 +191,10 @@ def write_individuals(config, template, individual_id, sex):
         indiviudal ID parsed from samplename
     sex : str
         sex parsed from samplename
+    
+    Outputs
+    -------
+    individuals.yaml
     """
     # update template with any values from config
     if config.get('individuals'):
@@ -202,6 +223,10 @@ def write_samples(config, template, individual_id, sample_id):
         indiviudal ID parsed from samplename
     sample_id : str
         sample ID parsed from samplename
+    
+    Outputs
+    -------
+    samples.yaml
     """
     # update template with any values from config
     if config.get('samples'):
@@ -229,6 +254,10 @@ def write_clinical(config, template, individual_id, sample_id):
         indiviudal ID parsed from samplename
     sample_id : str
         sample ID parsed from samplename
+
+    Outputs
+    -------
+    clinical.yaml
     """
     # update template with any values from config
     if config.get('clinical'):
@@ -247,7 +276,7 @@ def main():
     """Main entry point for app"""
     dxpy.set_workspace_id(os.environ.get("DX_PROJECT_CONTEXT"))
 
-    # get samplename prefix
+    # get samplename and download vcf
     file = dxpy.DXFile(vcfs[0].get_id())
     file_name = file.describe()['name']
     file_prefix = file_name.replace('.vcf', '').replace('.gz', '')
