@@ -20,6 +20,8 @@
     "samples": {
         "somatic": true
     },
+    "files": {
+    },
     "manifest": {
         "study": {
             "id": "myeloid"

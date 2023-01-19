@@ -20,6 +20,8 @@
     "samples": {
         "somatic": 
     },
+    "files": {
+    },
     "manifest": {
         "study": {
             "id": ""
