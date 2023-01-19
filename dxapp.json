@@ -21,7 +21,7 @@
         "label": "assay config",
         "class": "file",
         "optional": false,
-        "help": ""
+        "help": "config file for generating metadata in JSON format"
       },
       {
         "name": "validate_name",
@@ -41,7 +41,7 @@
         "patterns": [
           "*.zip"
         ],
-        "help": "zip of required config files for opencga upload"
+        "help": "zip of required YAML config files for opencga upload"
       }
     ],
     "runSpec": {
