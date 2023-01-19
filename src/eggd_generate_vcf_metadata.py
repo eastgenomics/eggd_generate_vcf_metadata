@@ -1,5 +1,7 @@
+from datetime import datetime
 import gzip
 import json
+from pathlib import PurePath
 from pprint import PrettyPrinter
 import re
 from typing import Union
@@ -194,7 +196,14 @@ def write_files(config, template, vcf_name, caller):
     if config.get('files'):
         template.update(config['files'])
 
-    template[0]['id'] = vcf_name
+    if template[0].get('id'):
+        # id defined in assay config => path for storing output vcf =>
+        # append vcf filename to it, if not store as data/{YYYYMM}/
+        path = PurePath(template[0].get('id'), vcf_name)
+    else:
+        path = PurePath(f"data/{datetime.today().strftime('%Y%m')}", vcf_name)
+
+    template[0]['id'] = str(path)
     template[0]['software']['name'] = caller
 
     print("Populated files.yaml writing to file:")
