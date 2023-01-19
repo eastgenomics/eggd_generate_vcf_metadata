@@ -34,9 +34,13 @@ def read_templates() -> Union[dict, dict, dict, dict]:
 
     with open('templates/samples.yaml') as fh:
         samples = yaml.safe_load(fh)
-        print(f"samples.manifest template: {samples}")
+        print(f"samples.yaml template: {samples}")
 
-    return clinical, individuals, manifest, samples
+    with open('templates/files.yaml') as fh:
+        files = yaml.safe_load(fh)
+        print(f"files.yaml template: {files}")
+
+    return clinical, individuals, manifest, samples, files
 
 
 def read_vcf_header(vcf) -> list:
@@ -172,6 +176,34 @@ def infer_caller(vcf_header) -> str:
     return None
 
 
+def write_files(config, template, vcf_name, caller):
+    """
+    Populate and write the files.yaml file
+
+    Parameters
+    ----------
+    config : dict
+        json config for assay
+    template : dict
+        clinical.yaml config read in with yaml.safe_loads()
+    vcf_name : str
+        filename of vcf
+    caller : str
+        variant caller used to generate vcf, parsed from header
+    """
+    if config.get('files'):
+        template.update(config['files'])
+
+    template[0]['id'] = vcf_name
+    template[0]['software']['name'] = caller
+
+    print("Populated files.yaml writing to file:")
+    PPRINT(template)
+
+    with open('files.yaml', 'w') as fh:
+        yaml.dump(template, fh)
+
+
 def write_manifest(config, template):
     """
     Populate and write the manifest.yaml file
@@ -266,7 +298,7 @@ def write_samples(config, template, individual_id, sample_id):
         yaml.dump(template, fh)
 
 
-def write_clinical(config, template, individual_id, sample_id, caller):
+def write_clinical(config, template, individual_id, sample_id):
     """
     Populate and write the clinical.yaml file
 
@@ -280,8 +312,6 @@ def write_clinical(config, template, individual_id, sample_id, caller):
         indiviudal ID parsed from samplename
     sample_id : str
         sample ID parsed from samplename
-    caller : str
-        variant caller used to generate vcf, parsed from header
 
     Outputs
     -------
@@ -289,13 +319,12 @@ def write_clinical(config, template, individual_id, sample_id, caller):
     """
     # update template with any values from config
     if config.get('clinical'):
-        template.update(config['clinical'])
+        template[0].update(config['clinical'])
 
     # add in required fields
-    template['id'] = f"{template.get('id')}{individual_id}"
-    template['proband']['id'] = individual_id
-    template['proband']['samples'][0]['id'] = sample_id
-    template['software'] = caller
+    template[0]['id'] = f"{template[0].get('id')}{individual_id}"
+    template[0]['proband']['id'] = individual_id
+    template[0]['proband']['samples'][0]['id'] = sample_id
 
     print(f"Populated clinical.yaml writing to file: {template}")
 
@@ -336,7 +365,7 @@ def main(vcfs, assay_config, validate_name):
         sex, probeset = parse_samplename(file_name, validate_name)
 
     # read in given  assay config and yaml templates
-    clinical, individuals, manifest, samples = read_templates()
+    clinical, individuals, manifest, samples, files = read_templates()
     config = json.loads(dxpy.DXFile(assay_config['$dnanexus_link']).read())
 
     print("Config file values given to add to metadata configs:")
@@ -347,14 +376,16 @@ def main(vcfs, assay_config, validate_name):
     caller = infer_caller(header)
 
     # populate templates and write to file
+    write_files(config, files, file_name, caller)
     write_manifest(config, manifest)
     write_individuals(config, individuals, individual_id, sex)
     write_samples(config, samples, individual_id, instrument_id)
-    write_clinical(config, clinical, individual_id, instrument_id, caller)
+    write_clinical(config, clinical, individual_id, instrument_id)
 
     # zip written files and add as output
     outname = f"{file_prefix}.opencga_configs.zip"
     with ZipFile(outname, 'w') as fh:
+        fh.write('files.yaml')
         fh.write('manifest.yaml')
         fh.write('individuals.yaml')
         fh.write('samples.yaml')
