@@ -78,21 +78,20 @@ This assumes the following structure for a given vcf name:
 n.b. validation of each of the fields is performed to ensure it matches the above structure and so that malformed metadata files are not generated. This may be skipped by specifying `-validate_name=false`.
 
 
-**files**
+**files.yaml**
 ```
 - id: 'path/to/vcf'
   software:
     name: 'softwareName'
 ```
 
-* `id` is a path to where the vcf is being uploaded in openCGA, if specified the vcf filename will be appeneded and written to the config. If not the path will default to `data/{YYYYMM}`.
+* `id` is a path to where the vcf is being uploaded in openCGA, if specified the vcf filename will be appended and written to the config. If not the path will default to `data/{YYYYMM}`.
 * `software - name`: name of variant caller used to generate the VCF. If not specified this will attempt to be inferred from the vcf header. The following mapping of string in vcf header to software name is used:
-```
-pindel => cgpPindel
-tnhaplotyper2 => TNhaplotyper2
-pisces => Pisces
-sentieoncommandline.haplotyper => GATK HaplotypeCaller
-```
+  * pindel => cgpPindel
+  * tnhaplotyper2 => TNhaplotyper2
+  * pisces => Pisces
+  * sentieoncommandline.haplotyper => GATK HaplotypeCaller
+
 
 
 **manifest.yaml**
