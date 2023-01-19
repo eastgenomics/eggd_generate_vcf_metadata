@@ -86,7 +86,13 @@ n.b. validation of each of the fields is performed to ensure it matches the abov
 ```
 
 * `id` is a path to where the vcf is being uploaded in openCGA, if specified the vcf filename will be appeneded and written to the config. If not the path will default to `data/{YYYYMM}`.
-* `software - name`: name of variant caller used to generate the VCF. If not specified this will attempt to be inferred from the vcf header.
+* `software - name`: name of variant caller used to generate the VCF. If not specified this will attempt to be inferred from the vcf header. The following mapping of string in vcf header to software name is used:
+```
+pindel => cgpPindel
+tnhaplotyper2 => TNhaplotyper2
+pisces => Pisces
+sentieoncommandline.haplotyper => GATK HaplotypeCaller
+```
 
 
 **manifest.yaml**
