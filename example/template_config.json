@@ -1,0 +1,31 @@
+{
+    "clinical": {
+        "disorder": {
+            "id": ""
+        },
+        "panels": {
+            "id": ""
+        },
+        "priority": {
+            "id": ""
+        },
+        "type": "",
+        "id": ""
+    },
+    "individuals":{
+        "disorders": {
+            "id": ""
+        }
+    },
+    "samples": {
+        "somatic": 
+    },
+    "manifest": {
+        "study": {
+            "id": ""
+        },
+        "configuration": {
+            "projectId": ""
+        }
+    }
+}

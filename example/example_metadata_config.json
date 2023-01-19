@@ -1,0 +1,31 @@
+{
+    "clinical": {
+        "disorder": {
+            "id": "HaemOnc"
+        },
+        "panels": {
+            "id": "haemonc_genes_all"
+        },
+        "priority": {
+            "id": "HIGH"
+        },
+        "type": "CANCER",
+        "id": "MYE-"
+    },
+    "individuals":{
+        "disorders": {
+            "id": "HaemOnc"
+        }
+    },
+    "samples": {
+        "somatic": true
+    },
+    "manifest": {
+        "study": {
+            "id": "myeloid"
+        },
+        "configuration": {
+            "projectId": "cancer_grch38"
+        }
+    }
+}
