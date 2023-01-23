@@ -123,20 +123,22 @@ def parse_samplename(sample, validate_name) -> list:
     # basic check we have correct number of fields
     assert len(name_fields) == 6, "Samplename has incorrect number of fields"
 
-    # mapping of field to expected string format
+    # mapping of field to expected string format, should be formated as:
+    # InstrumentID-SpecimenID-ClaritySequenceID-AssayID-PatientSex-ProbesetID
+    # e.g. 100033008-22363S0009-NV01234567LIBUDP0001-LAB8469-F-OPD2OPR1
     field_format = {
-        0: r"",
-        1: r"",
-        2: r"",
-        3: r"",
-        4: r"[MFU]",
-        5: r""
+        0: r"\d+",
+        1: r"\d+S\d+",
+        2: r"\w+\d+",
+        3: r"LAB\d+",
+        4: r"[MFUN]",
+        5: r"\w+\d+"
     }
 
     # test fields are formatted as expected
     errors = []
-    for idx, field in name_fields:
-        if not re.search(field_format[idx], field):
+    for idx, field in enumerate(name_fields):
+        if not re.fullmatch(field_format[idx], field):
             errors.append(field)
 
     if errors:
@@ -377,7 +379,7 @@ def main(vcfs, assay_config, validate_name):
     clinical, individuals, manifest, samples, files = read_templates()
     config = json.loads(dxpy.DXFile(assay_config['$dnanexus_link']).read())
 
-    print("Config file values given to add to metadata configs:")
+    print(f"\nConfig file values given to add to metadata configs:")
     PPRINT(config)
 
     # try parse caller from vcf header
