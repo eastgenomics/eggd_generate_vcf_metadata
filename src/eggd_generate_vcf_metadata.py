@@ -64,7 +64,7 @@ def read_vcf_header(vcf) -> list:
     RuntimeError
         Raised when non-vcf passed
     """
-    print(f"Reading from file: {vcf}")
+    print(f"\nReading header from file: {vcf}")
 
     if vcf.endswith('.vcf'):
         file_handle = open(vcf)
@@ -175,7 +175,7 @@ def infer_caller(vcf_header) -> str:
             return name
 
     print("Could not determine variant caller from header of vcf")
-    return None
+    return "Unknown"
 
 
 def write_files(config, template, vcf_name, caller):
@@ -206,7 +206,7 @@ def write_files(config, template, vcf_name, caller):
     template[0]['id'] = str(path)
     template[0]['software']['name'] = caller
 
-    print("Populated files.yaml writing to file:")
+    print("Writing files.yaml to file:")
     PPRINT(template)
 
     with open('files.yaml', 'w') as fh:
@@ -232,7 +232,7 @@ def write_manifest(config, template):
     if config.get('manifest'):
         template.update(config['manifest'])
 
-    print("Populated manifest.yaml writing to file:")
+    print("Writing manifest.yaml to file:")
     PPRINT(template)
 
     with open('manifest.yaml', 'w') as fh:
@@ -267,7 +267,7 @@ def write_individuals(config, template, individual_id, sex):
     template['name'] = individual_id
     template['sex']['id'] = sex
 
-    print("Populated individuals.yaml writing to file:")
+    print("Writing individuals.yaml to file:")
     PPRINT(template)
 
     with open('individuals.yaml', 'w') as fh:
@@ -301,7 +301,7 @@ def write_samples(config, template, individual_id, sample_id):
     template[0]['id'] = sample_id
     template[0]['individualId'] =  individual_id
 
-    print(f"Populated samples.yaml writing to file: {template}")
+    print(f"Writing samples.yaml to file: {template}")
 
     with open('samples.yaml', 'w') as fh:
         yaml.dump(template, fh)
@@ -335,7 +335,7 @@ def write_clinical(config, template, individual_id, sample_id):
     template[0]['proband']['id'] = individual_id
     template[0]['proband']['samples'][0]['id'] = sample_id
 
-    print(f"Populated clinical.yaml writing to file: {template}")
+    print(f"Writing clinical.yaml to file: {template}")
 
     with open('clinical.yaml', 'w') as fh:
         yaml.dump(template, fh)
